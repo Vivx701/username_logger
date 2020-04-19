@@ -1,0 +1,58 @@
+#!/usr/bin/bash
+
+GCC_EXE=`which gcc`
+SRC_NAME="main.c"
+OUT_PUT="username"
+INSTALL="install -m 755 -p"
+DEL_FILE="rm -f"
+PROFILE_D="/etc/profile.d"
+INSTALL_DIR="/usr/bin"
+build_script () {
+    
+    echo "Building the script "
+    $GCC_EXE $SRC_NAME -o $OUT_PUT
+}
+
+
+install_script () {
+    echo "install the scrpt "
+    if [ -f "$OUT_PUT" ]; then
+        echo "$OUT_PUT installing.."
+        $INSTALL $OUT_PUT "$INSTALL_DIR/$OUT_PUT"
+        CMD="[ -z "\$BASHRCSOURCED" ] || $INSTALL_DIR/$OUT_PUT >> /tmp/username.log"
+        echo $CMD > "$PROFILE_D/user.sh"
+    else
+        echo "$OUT_PUT not found . -b to build"
+    fi
+}
+
+remove_script () {
+    echo "removing the files "
+    $DEL_FILE "$INSTALL_DIR/$OUT_PUT"
+    $DEL_FILE "$PROFILE_D/user.sh"
+}
+
+clean_script () {
+    echo "clean script.."
+    $DEL_FILE $OUT_PUT
+}
+
+key="$1"
+case $key in
+    -b|--build)
+    build_script
+    ;;
+    -i|--install)
+    install_script
+    ;;
+    -r|--remove)
+    remove_script
+    ;;
+    -c|--clean)
+    clean_script
+    ;;
+    --default)
+    echo "Invalid arguments"
+    ;;
+esac
+
