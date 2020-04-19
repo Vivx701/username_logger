@@ -45,4 +45,6 @@ command help
 
 ## Working
 When user tried to login or switch user via GUI/greeter or terminal. Name of the user will be stored in /tmp/username.log
+
+Tested with: fedora 30 KDE, Kernel: 5.0.9-301.fc30.x86_64
    
