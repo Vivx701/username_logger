@@ -3,12 +3,11 @@ Code to log the name of the user while logged  in
 
 
 ## files included
-
 * main.c - c code to print username.
 * build  - Bash script to build and install code.
 
 
-##How to use build script
+## How to use build script
 command help
 
 1. Build main.c
@@ -44,6 +43,6 @@ command help
     ``` 
 
 
-##Working
+## Working
 When user tried to login or switch user via GUI/greeter or terminal. Name of the user will be stored in /tmp/username.log
    
