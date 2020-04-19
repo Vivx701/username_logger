@@ -9,13 +9,13 @@ PROFILE_D="/etc/profile.d"
 INSTALL_DIR="/usr/bin"
 build_script () {
     
-    echo "Building the script "
+    echo "Building the code "
     $GCC_EXE $SRC_NAME -o $OUT_PUT
 }
 
 
 install_script () {
-    echo "install the scrpt "
+    echo "install the code "
     if [ -f "$OUT_PUT" ]; then
         echo "$OUT_PUT installing.."
         $INSTALL $OUT_PUT "$INSTALL_DIR/$OUT_PUT"
@@ -37,6 +37,15 @@ clean_script () {
     $DEL_FILE $OUT_PUT
 }
 
+help () {
+
+echo " --build   :  Build code"
+echo " --install :  Install the code"
+echo " --clean   :  Clean  the code"
+echo " --remove  :  Remove installed the code"
+
+}
+
 key="$1"
 case $key in
     -b|--build)
@@ -51,8 +60,11 @@ case $key in
     -c|--clean)
     clean_script
     ;;
+    -h|--help)
+    help 
+    ;;
     --default)
-    echo "Invalid arguments"
+    help 
     ;;
 esac
 
