@@ -1,0 +1,13 @@
+[Unit] 
+Description=Username logger Service
+After=network.target username_server.socket
+Requires=username_server.socket
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/username_server
+TimeoutStopSec=5
+
+
+[Install]
+WantedBy=default.target

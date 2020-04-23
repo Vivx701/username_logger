@@ -1,0 +1,8 @@
+ [Unit]
+Description=username logger socket
+PartOf=username_server.service
+
+[Socket]
+ListenStream=127.0.0.1:15000
+[Install]
+WantedBy=sockets.target

@@ -1,26 +1,80 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 GCC_EXE=`which gcc`
-SRC_NAME="main.c"
-OUT_PUT="username"
+SERVER_SRC_NAME="server_sd.c"
+SERVER_OUT_PUT="username_server"
+CLIENT_SRC_NAME="client.c"
+CLIENT_OUT_PUT="username_client"
 INSTALL="install -m 755 -p"
 DEL_FILE="rm -f"
 PROFILE_D="/etc/profile.d"
+PROFILE_FILE="/etc/profile"
 INSTALL_DIR="/usr/bin"
+OS_NAME=`awk -F= '/^NAME/{print $2}' /etc/os-release`
+if [[ "$OS_NAME" == *"Ubuntu"* ]]; then 
+     BASHRC_FILE="/etc/bash.bashrc" 
+else  
+     BASHRC_FILE="/etc/bashrc" 
+fi
+SYSTEM_D_DIR="/lib/systemd/system"
+COPY_FILE="cp -f"
+SERVICE_FILE="username_server.service"
+SOCKET_FILE="username_server.socket"
+SYSTEMD_ENABLE="systemctl enable"
+SYSTEMD_RESTART="systemctl restart"
+SYSTEMD_DISABLE="systemctl disable"
+SYSTEMD_STOP="systemctl stop"
 build_script () {
     
-    echo "Building the code "
-    $GCC_EXE $SRC_NAME -o $OUT_PUT
+    echo "Building the server code "
+    $GCC_EXE $SERVER_SRC_NAME -lsystemd -o $SERVER_OUT_PUT
+    
+    echo "Building the client code "
+    $GCC_EXE $CLIENT_SRC_NAME  -o $CLIENT_OUT_PUT
 }
 
 
 install_script () {
     echo "install the code "
-    if [ -f "$OUT_PUT" ]; then
-        echo "$OUT_PUT installing.."
-        $INSTALL $OUT_PUT "$INSTALL_DIR/$OUT_PUT"
-        CMD="[ -z "\$BASHRCSOURCED" ] || $INSTALL_DIR/$OUT_PUT >> /tmp/username.log"
-        echo $CMD > "$PROFILE_D/user.sh"
+    if [ -f "$SERVER_OUT_PUT" ]; then
+        echo "$SERVER_OUT_PUT installing.."
+        $INSTALL $SERVER_OUT_PUT "$INSTALL_DIR/$SERVER_OUT_PUT"
+        
+        echo "copy $SERVICE_FILE"
+        $COPY_FILE $SERVICE_FILE "$SYSTEM_D_DIR/$SERVICE_FILE"
+        
+        echo "copy $SOCKET_FILE"
+        $COPY_FILE $SOCKET_FILE "$SYSTEM_D_DIR/$SOCKET_FILE"
+        
+        echo "$CLIENT_OUT_PUT installing.."
+        $INSTALL $CLIENT_OUT_PUT "$INSTALL_DIR/$CLIENT_OUT_PUT"
+
+        CMD="$INSTALL_DIR/$CLIENT_OUT_PUT"
+        if grep -q "$CMD"  "$BASHRC_FILE"; then
+            echo "Already found in bashrc"
+        else
+            echo "taking backup $BASHRC_FILE"
+            $COPY_FILE $BASHRC_FILE "$BASHRC_FILE.bak"
+            echo $CMD >> $BASHRC_FILE
+        fi
+
+        if [[ "$OS_NAME" == *"Ubuntu"* ]]; then 
+
+            if grep -q "$CMD"  "$PROFILE_FILE"; then
+                 echo "Already found in profile"
+            else
+                 echo "Writing to profile...."
+                 $COPY_FILE $PROFILE_FILE "$PROFILE_FILE.bak"
+		     echo $CMD >> $PROFILE_FILE
+            fi
+
+	  fi 
+        $SYSTEMD_ENABLE  "$SERVICE_FILE"
+        $SYSTEMD_ENABLE  "$SOCKET_FILE"
+        
+        $SYSTEMD_RESTART  "$SOCKET_FILE"
+        $SYSTEMD_RESTART  "$SERVICE_FILE"
+
     else
         echo "$OUT_PUT not found . -b to build"
     fi
@@ -28,17 +82,27 @@ install_script () {
 
 remove_script () {
     echo "removing the files "
-    $DEL_FILE "$INSTALL_DIR/$OUT_PUT"
-    $DEL_FILE "$PROFILE_D/user.sh"
+    $SYSTEMD_STOP  "$SOCKET_FILE"
+    $SYSTEMD_STOP  "$SERVICE_FILE"
+
+    $SYSTEMD_DISABLE  "$SOCKET_FILE"
+    $SYSTEMD_DISABLE  "$SERVICE_FILE"
+    
+    $DEL_FILE "$SYSTEM_D_DIR/$SERVICE_FILE"
+    $DEL_FILE "$SYSTEM_D_DIR/$SOCKET_FILE" 
+    
+    $DEL_FILE "$INSTALL_DIR/$SERVER_OUT_PUT"
+    $DEL_FILE "$INSTALL_DIR/$CLIENT_OUT_PUT"
 }
 
 clean_script () {
     echo "clean script.."
-    $DEL_FILE $OUT_PUT
+    $DEL_FILE $SERVER_OUT_PUT
+    $DEL_FILE $CLIENT_OUT_PUT
 }
 
 help () {
-
+echo "Running on $OS_NAME   $BASHRC_FILE"
 echo " --build   :  Build code"
 echo " --install :  Install the code"
 echo " --clean   :  Clean  the code"
