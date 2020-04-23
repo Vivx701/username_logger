@@ -3,9 +3,11 @@ Code to log the name of the user while logged  in
 
 
 ## files included
-* main.c - c code to print username.
-* build  - Bash script to build and install code.
-
+* client.c     - c code send username
+* server_sd.c  - systemd server to write to file
+* build        - Bash script to build and install code.
+* username_server.service - "systemd service file"
+* username_server.socket - " systemd socket file"
 
 ## How to use build script
 command help
@@ -19,13 +21,13 @@ command help
     ``` 
 2. Install username command
 
-    Installs the username command to /usr/bin and creates a user.sh file in "/etc/profile.d"
+    Installs the services and files to system
     ```
     sudo ./build --install
     ``` 
 3. Uninstall the command
     
-    Removes the username command from /usr/bin and  user.sh file from "/etc/profile.d"
+    Removes the services and files from system. Restore the /etc/bashrc and /etc/profile manullay from .bak files
     ```
     sudo ./build --remove
     ``` 
